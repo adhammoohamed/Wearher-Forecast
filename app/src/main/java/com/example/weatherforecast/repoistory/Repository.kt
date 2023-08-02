@@ -8,10 +8,9 @@ import javax.inject.Inject
 
 class Repository @Inject constructor(private val apiService: ApiService) {
 
-    suspend fun getCurrentWeather(lat: String, lon: String): Response<CurrentWeather> {
+    suspend fun getCurrentWeather(lat: String, lon: String): Response<CurrentWeather>{
         return apiService.getCurrentWeather(lat, lon)
     }
-
     suspend fun getDayForecast(lat: String, lon: String): Response<Forecast> {
         return apiService.getDaysForecast(lat, lon)
     }

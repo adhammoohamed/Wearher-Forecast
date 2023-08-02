@@ -18,26 +18,25 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    val client = OkHttpClient.Builder()
+    private val client = OkHttpClient.Builder()
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
         .connectTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS).
-        readTimeout(60, TimeUnit.SECONDS).
-        build()
+        .build()
 
     @Provides
     @Singleton
-    fun provideRetrofitInstance(): ApiService {
-        return Retrofit.Builder()
-            .baseUrl(Constants.BASE_URL)
+    fun provideService(): ApiService {
+        return Retrofit.Builder().baseUrl(Constants.BASE_URL)
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+            .addConverterFactory(GsonConverterFactory.create()).build()
             .create(ApiService::class.java)
     }
 
+
     @Provides
     @Singleton
-    fun provideRepository(apiService: ApiService): Repository{
+    fun provideRepository(apiService: ApiService): Repository {
         return Repository(apiService)
     }
 }

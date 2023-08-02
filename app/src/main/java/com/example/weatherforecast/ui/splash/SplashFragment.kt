@@ -22,8 +22,6 @@ class SplashFragment : Fragment() {
         // Inflate the layout for this fragment
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_splash, container, false)
 
-        binding.lottieAnim.playAnimation()
-
         Handler().postDelayed({
             findNavController().navigate(SplashFragmentDirections.actionSplashFragmentToLoadingFragment())
         }, 3200)

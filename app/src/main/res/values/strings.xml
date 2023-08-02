@@ -2,4 +2,6 @@
     <string name="app_name">Weather Forecast</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="maps_api_key">AIzaSyAM6WJnRi6BciYGhT_HVkYhRNu7sx32dsM</string>
+
 </resources>

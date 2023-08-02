@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import com.example.example.CurrentWeather
 import com.example.weatherforecast.MainActivity
 import com.example.weatherforecast.R
@@ -30,15 +31,11 @@ class HomeFragment : Fragment() {
         binding.cardsRecycler.adapter = adapter
         viewModel = (activity as MainActivity).getSharedViewModel()
 
-        viewModel.currentWeather.observe(viewLifecycleOwner) {
-            Log.d("Adham", "current Home: ${it?.name}")
-            Log.d(
-                "Adham",
-                "forecast Home: ${it!!.weather[0].description}"
-            )
-        }
-
         updateUi()
+
+        binding.locationIc.setOnClickListener {
+            findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToMapFragment())
+        }
 
         return binding.root
     }

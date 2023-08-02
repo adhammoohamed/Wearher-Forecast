@@ -28,16 +28,19 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import pub.devrel.easypermissions.EasyPermissions
+import pub.devrel.easypermissions.PermissionRequest
 
+@Suppress("DEPRECATION")
 @AndroidEntryPoint
-class LoadingFragment : Fragment() {
+class LoadingFragment : Fragment(), EasyPermissions.PermissionCallbacks {
 
     private lateinit var binding: FragmentLoadingBinding
     private lateinit var viewModel: SharedViewModel
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private val locationRequest = LocationRequest.create().apply {
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        interval = 10000
+        interval = 5000
     }
     private var isLocationUpdateRequested = false
     private lateinit var navController: NavController
@@ -57,29 +60,44 @@ class LoadingFragment : Fragment() {
 
 
         requestPermissions()
-        getUserLocation()
 
         return binding.root
     }
 
     private fun requestPermissions() {
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+        if (!EasyPermissions.hasPermissions(
                 requireContext(),
                 Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ),
-                Constants.REQUEST_CODE
+            ) && !EasyPermissions.hasPermissions(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
             )
+        ) {
+            EasyPermissions.requestPermissions(
+                PermissionRequest.Builder(
+                    this,
+                    Constants.REQUEST_CODE,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+                    .setRationale("This app requires location permission to function properly.")
+                    .setPositiveButtonText("OK")
+                    .setNegativeButtonText("Cancel")
+                    .build()
+            )
+        } else {
+            getUserLocation()
         }
+    }
+
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
 
     private fun getUserLocation() {
@@ -87,9 +105,6 @@ class LoadingFragment : Fragment() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
                 locationResult.lastLocation.let { location: Location? ->
-
-                    Log.d("Adham", "lat: ${location?.latitude}")
-                    Log.d("Adham", "lon: ${location?.longitude}")
                     viewModel.updateUserLocation(location!!)
 
                     getDataFromRemote()
@@ -116,16 +131,24 @@ class LoadingFragment : Fragment() {
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null)
     }
 
+    override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
+        getUserLocation()
+    }
+
+    override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
+        Toast.makeText(
+            requireContext(),
+            "This app requires location permission to function properly.",
+            Toast.LENGTH_SHORT
+        )
+            .show()
+        requestPermissions()
+    }
+
     private fun getDataFromRemote() {
         viewModel.getCurrentWeather()
-        viewModel.currentWeather.observe(viewLifecycleOwner){
-
+        viewModel.currentWeather.observe(viewLifecycleOwner) {
             viewModel.updateCurrentWeatherDate(it)
-            Log.d("Adham", "current: ${it?.name}")
-            Log.d(
-                "Adham",
-                "forecast: ${it!!.weather[0].description}"
-            )
         }
         viewModel.getDaysForecast()
     }
